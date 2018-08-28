@@ -1,8 +1,17 @@
 const path = require('path');
 const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+const HTMLWebpackPluginConfig = new HtmlWebpackPlugin({
+  template: `${__dirname}/src/index.html`,
+  filename: 'index.html',
+  inject: 'body',
+  favicon: './src/favicon.ico'
+});
 
 module.exports = {
+  mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
   entry: {
     app: ['./src/app.jsx'],
     vendors: [
@@ -31,7 +40,7 @@ module.exports = {
     }
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
@@ -41,36 +50,26 @@ module.exports = {
         }
       },
       {
-        test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          use: [
-            {
-              loader: 'css-loader'
-            },
-            {
-              loader: 'postcss-loader'
-            }
-          ],
-          fallback: 'style-loader'
-        })
-      },
-      {
         test: /\.s[a|c]ss$/,
         exclude: /node_modules/,
-        use: ExtractTextPlugin.extract({
-          use: [
-            {
-              loader: 'css-loader?modules&localIdentName=[local]_cfb_[hash:10]'
-            },
-            {
-              loader: 'postcss-loader'
-            },
-            {
-              loader: 'sass-loader'
-            }
-          ],
-          fallback: 'style-loader'
-        })
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader
+          },
+          { loader: 'css-loader' },
+          { loader: 'postcss-loader' },
+          { loader: 'sass-loader' }
+        ]
+      },
+      {
+        test: /\.css/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader
+          },
+          { loader: 'css-loader' },
+          { loader: 'postcss-loader' }
+        ]
       },
       {
         test: /\.(eot|ttf|woff|svg)?$/,
@@ -89,5 +88,32 @@ module.exports = {
         }
       }
     ]
-  }
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'async',
+      minSize: 30000,
+      maxSize: 0,
+      minChunks: 1,
+      maxAsyncRequests: 5,
+      maxInitialRequests: 3,
+      automaticNameDelimiter: '~',
+      name: true,
+      cacheGroups: {
+        vendors: {
+          test: /[\\/]node_modules[\\/]/,
+          priority: -10
+        },
+        default: {
+          minChunks: 2,
+          priority: -20,
+          reuseExistingChunk: true
+        }
+      }
+    }
+  },
+  plugins: [
+    new MiniCssExtractPlugin({ filename: 'assets/[name].[hash].css' }),
+    HTMLWebpackPluginConfig
+  ]
 };

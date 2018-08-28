@@ -2,7 +2,6 @@ const webpack = require('webpack');
 const merge = require('webpack-merge');
 const common = require('./webpack.common.js');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const HTMLWebpackPluginConfig = new HtmlWebpackPlugin({
   template: `${__dirname}/src/index.html`,
@@ -24,9 +23,5 @@ module.exports = merge(common, {
       'Access-Control-Allow-Headers':
         'X-Requested-With, content-type, Authorization'
     }
-  },
-  plugins: [
-    HTMLWebpackPluginConfig,
-    new ExtractTextPlugin('assets/[name].[hash].css')
-  ]
+  }
 });
